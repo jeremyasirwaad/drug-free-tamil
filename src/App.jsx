@@ -80,8 +80,8 @@ function App() {
 			<Toaster></Toaster>
 			<div style={{ marginTop: "40px" }}></div>
 			<Divider orientation="center">
-				<span style={{ fontWeight: "500", fontSize: "22px" }}>
-					Voice Against Drugs/போதைப்பொருளுக்கு எதிரான குரல்
+				<span className="dividertext">
+					Voice Against Drugs <br /> போதைப்பொருளுக்கு எதிரான குரல்
 				</span>{" "}
 			</Divider>
 			<div
@@ -101,9 +101,7 @@ function App() {
 			</div>
 
 			<Divider orientation="center">
-				<span style={{ fontWeight: "500", fontSize: "22px" }}>
-					Submit a Tip
-				</span>{" "}
+				<span className="dividertext">Submit a Tip</span>{" "}
 			</Divider>
 			<div style={{ marginTop: "10px" }}></div>
 			<div className="doc-input">
@@ -116,7 +114,7 @@ function App() {
 							autoComplete="off"
 						>
 							<Row gutter={[32, 16]}>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item label={"Name/பெயர் (optional)"} name={"Name"}>
 										<Input
 											onChange={(e) => {
@@ -133,7 +131,7 @@ function App() {
 										></Input>
 									</Form.Item>
 								</Col>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item
 										label={"Email Id/மின்னஞ்சல் முகவரி (optional)"}
 										name={"Email_id"}
@@ -148,7 +146,7 @@ function App() {
 										></Input>
 									</Form.Item>
 								</Col>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item
 										label={"Mobile Number/கைபேசி எண் (optional)"}
 										name={"Mobile_number"}
@@ -172,7 +170,7 @@ function App() {
 										</Space.Compact>
 									</Form.Item>
 								</Col>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item
 										label={"Address of the Incident/சம்பவத்தின் முகவரி"}
 										name={"address"}
@@ -190,7 +188,7 @@ function App() {
 										</Space.Compact>
 									</Form.Item>
 								</Col>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item
 										label={"Type of Tip/குறிப்பு வகை"}
 										name={"Type of Tip"}
@@ -216,7 +214,7 @@ function App() {
 										</Select>
 									</Form.Item>
 								</Col>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item
 										label={"Landmark of the Incident/சம்பவ இட அடையாளம்"}
 										name={"landmark"}
@@ -235,7 +233,7 @@ function App() {
 										</Space.Compact>
 									</Form.Item>
 								</Col>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item
 										label={"Your Message/உங்கள் தகவல்"}
 										name={"Your Message"}
@@ -252,7 +250,7 @@ function App() {
 										/>
 									</Form.Item>
 								</Col>
-								<Col span={12}>
+								<Col md={12} xs={24}>
 									<Form.Item
 										label={
 											<p>
