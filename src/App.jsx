@@ -78,7 +78,7 @@ function App() {
 	return (
 		<div className="form">
 			<Toaster></Toaster>
-			<div style={{ marginTop: "40px" }}></div>
+			<div style={{ marginTop: "20px" }}></div>
 			<Divider orientation="center">
 				<span className="dividertext">
 					Voice Against Drugs <br /> போதைப்பொருளுக்கு எதிரான குரல்
