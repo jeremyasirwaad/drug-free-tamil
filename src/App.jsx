@@ -16,6 +16,16 @@ import { PlusOutlined } from "@ant-design/icons";
 import toast, { Toaster } from "react-hot-toast";
 import { Space, Table, Tag } from "antd";
 import axios from "axios";
+import {
+	GoogleMap,
+	MarkerF,
+	useLoadScript,
+	useJsApiLoader,
+	Autocomplete
+} from "@react-google-maps/api";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const libraries = ["places"];
 
 function App() {
 	const [form] = Form.useForm();
@@ -29,6 +39,9 @@ function App() {
 	const [landmark, setlandmark] = useState("");
 	const [yourMessage, setYourMessage] = useState("");
 	const [pdfFile, setPdfFile] = useState(null);
+	const [position, setPosition] = useState({ lat: 13.067439, lng: 80.237617 });
+	const [autocomplete, setAutocomplete] = useState(null);
+	const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
 
 	function validateEmail(email) {
 		// Define the regular expression pattern for a valid email address
@@ -74,6 +87,53 @@ function App() {
 			}
 		}
 	};
+
+	const handleDragEnd = (e) => {
+		const { latLng } = e;
+		setPosition({
+			lat: latLng.lat(),
+			lng: latLng.lng()
+		});
+		console.log(position);
+	};
+
+	const handlePlaceSelect = (e) => {
+		console.log(e);
+		if (autocomplete !== null) {
+			const place = autocomplete.getPlace();
+			const { geometry } = place;
+
+			if (geometry && geometry.location) {
+				const { lat, lng } = geometry.location.toJSON();
+				console.log("Latitude:", lat);
+				console.log("Longitude:", lng);
+				setPosition({
+					lat: lat,
+					lng: lng
+				});
+				// Do something with lat and lng, like updating state or making an API call
+			}
+		}
+	};
+
+	const handleCaptchaChange = (value) => {
+		// This callback will be called when the user completes the reCAPTCHA challenge
+		console.log("Captcha value:", value);
+		setIsCaptchaVerified(true);
+	};
+
+	const { isLoaded, loadError } = useLoadScript({
+		googleMapsApiKey: "AIzaSyBv-AqQGIrscNRT52rGJvT8SUzaqKqXOlI",
+		libraries
+	});
+
+	if (loadError) {
+		return <div>Error loading maps</div>;
+	}
+
+	if (!isLoaded) {
+		return <div>Loading maps</div>;
+	}
 
 	return (
 		<div className="form">
@@ -172,20 +232,38 @@ function App() {
 								</Col>
 								<Col md={12} xs={24}>
 									<Form.Item
-										label={"Address of the Incident/சம்பவத்தின் முகவரி"}
+										label={
+											<p>
+												<span style={{ color: "red" }}> *</span> Address of the
+												Incident/சம்பவத்தின் முகவரி
+											</p>
+										}
+										// label={"Address of the Incident/சம்பவத்தின் முகவரி"}
 										name={"address"}
-										rules={[{ required: true }]}
+										// rules={[{ required: true }]}
 									>
-										<Space.Compact style={{ width: "100%" }}>
-											<Input
+										<Autocomplete
+											onLoad={(autocomplete) => setAutocomplete(autocomplete)}
+											onPlaceChanged={handlePlaceSelect}
+										>
+											<input
+												type="text"
+												placeholder="Complete Address"
+												className="ant-input-custom"
+												style={{ width: "100%" }}
 												onChange={(e) => {
 													setaddress(e.target.value);
 												}}
-												style={{ width: "100%" }}
-												placeholder="Complete Address"
-												size="large"
-											></Input>
-										</Space.Compact>
+											/>
+											{/* <Input
+											// onChange={(e) => {
+											// 	setaddress(e.target.value);
+											// }}
+											// style={{ width: "100%" }}
+											// placeholder="Complete Address"
+											// size="large"
+											></Input> */}
+										</Autocomplete>
 									</Form.Item>
 								</Col>
 								<Col md={12} xs={24}>
@@ -284,6 +362,40 @@ function App() {
 										</Upload>
 									</Form.Item>
 								</Col>
+								<Col md={12} xs={24}>
+									<p style={{ marginBottom: "10px" }}>
+										<span style={{ color: "red" }}> *</span> Mark Coordinates of
+										the incident/சம்பவத்தின் ஆயங்களைக் குறிக்கவும்
+									</p>
+
+									<GoogleMap
+										mapContainerStyle={{ width: "100%", height: "300px" }}
+										center={position}
+										zoom={18}
+									>
+										{" "}
+										<MarkerF
+											draggable={true}
+											onDragEnd={handleDragEnd}
+											position={position}
+										/>
+									</GoogleMap>
+								</Col>
+								<Col md={12} xs={24}>
+									<div
+										style={{
+											display: "flex",
+											alignItems: "flex-end",
+											justifyContent: "center",
+											height: "100%"
+										}}
+									>
+										<ReCAPTCHA
+											sitekey="6LcpSj8pAAAAAEHX5mgsbOzhpSrDxQ6kIf1Yg8YU"
+											onChange={handleCaptchaChange}
+										/>
+									</div>
+								</Col>
 							</Row>
 							<Form.Item>
 								<div className="addindibtn">
@@ -301,6 +413,7 @@ function App() {
 										type="primary"
 										onClick={() => {
 											submitOnClick();
+											// setPosition({ lat: 11.026844, lng: 76.954833 });
 										}}
 									>
 										Submit Tip
