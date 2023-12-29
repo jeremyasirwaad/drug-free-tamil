@@ -30,7 +30,7 @@ const libraries = ["places"];
 function App() {
 	const [form] = Form.useForm();
 	const { TextArea } = Input;
-	const BASE_URL = import.meta.env.VITE_BASE_URL;
+	const BASE_URL = import.meta.env.VITE_MAP_API_KEYenv.VITE_BASE_URL;
 
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
@@ -53,8 +53,6 @@ function App() {
 		// Use the test() method to check if the email matches the pattern
 		return pattern.test(email);
 	}
-
-	
 
 	const submitOnClick = async () => {
 		if (
@@ -150,7 +148,7 @@ function App() {
 	};
 
 	const { isLoaded, loadError } = useLoadScript({
-		googleMapsApiKey: "AIzaSyBv-AqQGIrscNRT52rGJvT8SUzaqKqXOlI",
+		googleMapsApiKey: import.meta.env.VITE_MAP_API_KEY,
 		libraries
 	});
 
