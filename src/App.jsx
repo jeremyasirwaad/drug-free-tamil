@@ -8,9 +8,9 @@ import {
 	Select,
 	Input,
 	Button,
-	DatePicker,
 	Upload,
-	Alert
+	Alert,
+	Modal
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import toast, { Toaster } from "react-hot-toast";
@@ -24,12 +24,14 @@ import {
 	Autocomplete
 } from "@react-google-maps/api";
 import ReCAPTCHA from "react-google-recaptcha";
+import AWS from "aws-sdk";
 
 const libraries = ["places"];
 
 function App() {
 	const [form] = Form.useForm();
 	const { TextArea } = Input;
+	const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
@@ -42,6 +44,8 @@ function App() {
 	const [position, setPosition] = useState({ lat: 13.067439, lng: 80.237617 });
 	const [autocomplete, setAutocomplete] = useState(null);
 	const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+	const [captchaValue, setcaptchaValue] = useState("");
+	const [submitButtonLoading, setSubmitButtonLoading] = useState(false);
 
 	function validateEmail(email) {
 		// Define the regular expression pattern for a valid email address
@@ -50,6 +54,34 @@ function App() {
 		// Use the test() method to check if the email matches the pattern
 		return pattern.test(email);
 	}
+
+	const S3FileUploader = async () => {
+		AWS.config.update({
+			accessKeyId: import.meta.env.VITE_S3_ACCESS_KEY,
+			secretAccessKey: import.meta.env.VITE_S3_SECRETE_KEY,
+			region: import.meta.env.VITE_S3_REGION
+		});
+
+		const s3 = new AWS.S3();
+
+		try {
+			// Upload file to S3
+			const params = {
+				Bucket: "drugfreetamil",
+				Key: `files/${Date.now()}_${pdfFile.name}`,
+				Body: pdfFile,
+				ContentType: pdfFile.type
+			};
+
+			const uploadResult = await s3.upload(params).promise();
+			console.log("File uploaded to S3:", uploadResult.Location);
+			return uploadResult.Location;
+
+			// You can handle the S3 URL as needed (e.g., send it to the backend)
+		} catch (error) {
+			console.error("Error uploading file to S3:", error);
+		}
+	};
 
 	const submitOnClick = async () => {
 		if (
@@ -61,10 +93,19 @@ function App() {
 		) {
 			toast.error("Enter all mandatory Fields");
 		} else {
-			if (!validateEmail(email)) {
+			if (email && !validateEmail(email)) {
 				toast.error("Invalid Email!");
 				return;
 			}
+			if (!isCaptchaVerified) {
+				toast.error("Please Verify Captcha");
+				return;
+			}
+
+			setSubmitButtonLoading(true);
+
+			const fileLink = await S3FileUploader();
+
 			try {
 				// Send a POST request to the backend
 				const response = await axios.post("http://localhost:8080/submit-tip", {
@@ -74,12 +115,16 @@ function App() {
 					address,
 					typeOfTip,
 					landmark,
-					yourMessage
+					yourMessage,
+					captchaValue,
+					fileLink,
+					position
 				});
 
 				console.log(response.data); // Log the response from the backend
 				if (response.data.success == true) {
-					toast.success("Tip Submitted");
+					setSubmitButtonLoading(false);
+					successModel(response.data.ref_no);
 					form.resetFields();
 				}
 			} catch (error) {
@@ -101,6 +146,7 @@ function App() {
 		console.log(e);
 		if (autocomplete !== null) {
 			const place = autocomplete.getPlace();
+			setaddress(place.name + place.formatted_address);
 			const { geometry } = place;
 
 			if (geometry && geometry.location) {
@@ -118,8 +164,16 @@ function App() {
 
 	const handleCaptchaChange = (value) => {
 		// This callback will be called when the user completes the reCAPTCHA challenge
-		console.log("Captcha value:", value);
+		// console.log("Captcha value:", value);
+		setcaptchaValue(value);
 		setIsCaptchaVerified(true);
+	};
+
+	const successModel = (ref_no) => {
+		Modal.success({
+			title: "Tip has been Recorded",
+			content: <span>Thank you for submitting the tip. Ref id: {ref_no}</span>
+		});
 	};
 
 	const { isLoaded, loadError } = useLoadScript({
@@ -252,17 +306,18 @@ function App() {
 												className="ant-input-custom"
 												style={{ width: "100%" }}
 												onChange={(e) => {
+													console.log(e);
 													setaddress(e.target.value);
 												}}
+												// value={address}
+												// onBlur={() => {
+												// 	console.log(autocomplete.getPlace());
+												// 	// If the user didn't select from the autocomplete dropdown, clear the address
+												// 	// if (!autocomplete.getPlace().formatted_address) {
+												// 	// 	setaddress("");
+												// 	// }
+												// }}
 											/>
-											{/* <Input
-											// onChange={(e) => {
-											// 	setaddress(e.target.value);
-											// }}
-											// style={{ width: "100%" }}
-											// placeholder="Complete Address"
-											// size="large"
-											></Input> */}
 										</Autocomplete>
 									</Form.Item>
 								</Col>
@@ -340,9 +395,10 @@ function App() {
 										name={"Certicate File"}
 									>
 										<Upload
-											maxCount={2}
+											maxCount={1}
 											beforeUpload={(file) => {
 												const selectedFile = file;
+												console.log(file);
 												setPdfFile(selectedFile);
 												return false;
 											}}
@@ -365,7 +421,8 @@ function App() {
 								<Col md={12} xs={24}>
 									<p style={{ marginBottom: "10px" }}>
 										<span style={{ color: "red" }}> *</span> Mark Coordinates of
-										the incident/சம்பவத்தின் ஆயங்களைக் குறிக்கவும்
+										the incident(Drag the Pin to mark)/சம்பவத்தின் ஆயங்களைக்
+										குறிக்கவும்(குறியிட பின்னை இழுக்கவும்)
 									</p>
 
 									<GoogleMap
@@ -411,6 +468,7 @@ function App() {
 									<Button
 										htmlType="submit"
 										type="primary"
+										loading={submitButtonLoading}
 										onClick={() => {
 											submitOnClick();
 											// setPosition({ lat: 11.026844, lng: 76.954833 });
