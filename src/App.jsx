@@ -24,7 +24,6 @@ import {
 	Autocomplete
 } from "@react-google-maps/api";
 import ReCAPTCHA from "react-google-recaptcha";
-import AWS from "aws-sdk";
 
 const libraries = ["places"];
 
@@ -55,33 +54,7 @@ function App() {
 		return pattern.test(email);
 	}
 
-	const S3FileUploader = async () => {
-		AWS.config.update({
-			accessKeyId: import.meta.env.VITE_S3_ACCESS_KEY,
-			secretAccessKey: import.meta.env.VITE_S3_SECRETE_KEY,
-			region: import.meta.env.VITE_S3_REGION
-		});
-
-		const s3 = new AWS.S3();
-
-		try {
-			// Upload file to S3
-			const params = {
-				Bucket: "drugfreetamil",
-				Key: `files/${Date.now()}_${pdfFile.name}`,
-				Body: pdfFile,
-				ContentType: pdfFile.type
-			};
-
-			const uploadResult = await s3.upload(params).promise();
-			console.log("File uploaded to S3:", uploadResult.Location);
-			return uploadResult.Location;
-
-			// You can handle the S3 URL as needed (e.g., send it to the backend)
-		} catch (error) {
-			console.error("Error uploading file to S3:", error);
-		}
-	};
+	
 
 	const submitOnClick = async () => {
 		if (
@@ -104,22 +77,22 @@ function App() {
 
 			setSubmitButtonLoading(true);
 
-			const fileLink = await S3FileUploader();
+			// const fileLink = await S3FileUploader();
 
 			try {
+				const formData = new FormData();
+				formData.append("file", pdfFile);
+				formData.append("name", name);
+				formData.append("email", email);
+				formData.append("mobileNumber", mobileNumber);
+				formData.append("address", address);
+				formData.append("typeOfTip", typeOfTip);
+				formData.append("landmark", landmark);
+				formData.append("yourMessage", yourMessage);
+				formData.append("captchaValue", captchaValue);
+				formData.append("position", position);
 				// Send a POST request to the backend
-				const response = await axios.post("http://localhost:8080/submit-tip", {
-					name,
-					email,
-					mobileNumber,
-					address,
-					typeOfTip,
-					landmark,
-					yourMessage,
-					captchaValue,
-					fileLink,
-					position
-				});
+				const response = await axios.post(`${BASE_URL}/submit-tip`, formData);
 
 				console.log(response.data); // Log the response from the backend
 				if (response.data.success == true) {
