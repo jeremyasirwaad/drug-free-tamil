@@ -73,7 +73,7 @@ function App() {
 				return;
 			}
 
-			// setSubmitButtonLoading(true);
+			setSubmitButtonLoading(true);
 
 			// const fileLink = await S3FileUploader();
 
