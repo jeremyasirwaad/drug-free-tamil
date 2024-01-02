@@ -68,6 +68,10 @@ function App() {
 				toast.error("Invalid Email!");
 				return;
 			}
+			if (position.lat == 13.067439 && position.lng == 80.237617) {
+				toast.error("Mark the Coordinates");
+				return;
+			}
 			if (!isCaptchaVerified) {
 				toast.error("Please Verify Captcha");
 				return;
