@@ -73,7 +73,7 @@ function App() {
 				return;
 			}
 
-			setSubmitButtonLoading(true);
+			// setSubmitButtonLoading(true);
 
 			// const fileLink = await S3FileUploader();
 
@@ -88,7 +88,11 @@ function App() {
 				formData.append("landmark", landmark);
 				formData.append("yourMessage", yourMessage);
 				formData.append("captchaValue", captchaValue);
-				formData.append("position", position);
+				formData.append("lat", position.lat);
+				formData.append("lng", position.lng);
+
+				// console.log(position);
+				// return;
 				// Send a POST request to the backend
 				const response = await axios.post(`${BASE_URL}/submit-tip`, formData);
 
